@@ -1,0 +1,332 @@
+<head>
+  <title>PhysForm</title>
+  <style>
+    body { font-family: sans-serif; }
+    .solver-container {
+      background-color: #f0f0f0;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 400px;
+      display: none; /* Hide solvers by default */
+    }
+    .solver-container.active {
+      display: block; /* Show active solver */
+    }
+    .input-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .input-group label {
+      flex: 1;
+    }
+    .input-group input {
+      flex: 2;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .solve-button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .solve-button:hover {
+      background-color: #45a049;
+    }
+    .results {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .main-menu { margin-bottom: 20px; }
+    .main-menu button { padding: 10px; font-size: 16px; cursor: pointer; }
+    .view { display: none; } /* hide views by default */
+    .view.active { display: block; } /* show active view */
+    #solver-selection { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Web Physics Solver</h1>
+
+  <div class="main-menu">
+    <button id="show-formulas-btn">Formulas</button>
+    <button id="show-solvers-btn">Solvers</button>
+  </div>
+
+  <div id="main-content">
+    <div id="formulas-view" class="view">
+      <h2>Formulas</h2>
+      <h3>Kinematics</h3>
+      <ul>
+        <li>s = u*t + 0.5*a*t²</li>
+        <li>v = u + a*t</li>
+        <li>v² = u² + 2*a*s</li>
+      </ul>
+      <h3>Gravitational Potential Energy (GPE)</h3>
+      <ul>
+        <li>GPE = m * g * h</li>
+      </ul>
+      <h3>Force</h3>
+      <ul>
+        <li>F = m * a</li>
+      </ul>
+      <h3>Work</h3>
+      <ul>
+        <li>W = F * d</li>
+        <li>W = F * d * cos(θ)</li>
+      </ul>
+    </div>
+
+    <div id="solvers-view" class="view active">
+      <div id="solver-selection">
+        <label for="solver-dropdown">Choose a solver:</label>
+        <select id="solver-dropdown">
+          <option value="kinematics">Kinematics</option>
+          <option value="gpe">GPE (m*g*h)</option>
+          <option value="force">Force (F=m*a)</option>
+          <option value="simple-work">Simple Work (W=F*d)</option>
+          <option value="complex-work">Complex Work (W=F*d*cos(θ))</option>
+        </select>
+      </div>
+
+      <div id="kinematics-solver" class="solver-container active">
+        <h3>Kinematics</h3>
+        <div class="input-group">
+          <label for="s">Displacement (s):</label>
+          <input type="number" id="s" placeholder="meters">
+        </div>
+        <div class="input-group">
+          <label for="u">Initial Velocity (u):</label>
+          <input type="number" id="u" placeholder="m/s">
+        </div>
+        <div class="input-group">
+          <label for="v">Final Velocity (v):</label>
+          <input type="number" id="v" placeholder="m/s">
+        </div>
+        <div class="input-group">
+          <label for="a">Acceleration (a):</label>
+          <input type="number" id="a" placeholder="m/s²">
+        </div>
+        <div class="input-group">
+          <label for="t">Time (t):</label>
+          <input type="number" id="t" placeholder="seconds">
+        </div>
+        <button id="kinematics-solve-button" class="solve-button">Solve</button>
+        <div id="kinematics-results" class="results"></div>
+      </div>
+
+      <div id="gpe-solver" class="solver-container">
+        <h3>GPE Solver</h3>
+        <div class="input-group"><label for="gpe">GPE:</label><input type="number" id="gpe" placeholder="Joules"></div>
+        <div class="input-group"><label for="m_gpe">Mass (m):</label><input type="number" id="m_gpe" placeholder="kg"></div>
+        <div class="input-group"><label for="g">Gravity (g):</label><input type="number" id="g" value="9.81" placeholder="m/s²"></div>
+        <div class="input-group"><label for="h">Height (h):</label><input type="number" id="h" placeholder="meters"></div>
+        <button class="solve-button" data-solver="gpe">Solve</button>
+        <div class="results" id="gpe-results"></div>
+      </div>
+
+      <div id="force-solver" class="solver-container">
+        <h3>Force Solver</h3>
+        <div class="input-group"><label for="f">Force (F):</label><input type="number" id="f" placeholder="Newtons"></div>
+        <div class="input-group"><label for="m_force">Mass (m):</label><input type="number" id="m_force" placeholder="kg"></div>
+        <div class="input-group"><label for="a_force">Acceleration (a):</label><input type="number" id="a_force" placeholder="m/s²"></div>
+        <button class="solve-button" data-solver="force">Solve</button>
+        <div class="results" id="force-results"></div>
+      </div>
+
+      <div id="simple-work-solver" class="solver-container">
+        <h3>Simple Work Solver</h3>
+        <div class="input-group"><label for="w_simple">Work (W):</label><input type="number" id="w_simple" placeholder="Joules"></div>
+        <div class="input-group"><label for="f_simple">Force (F):</label><input type="number" id="f_simple" placeholder="Newtons"></div>
+        <div class="input-group"><label for="d_simple">Distance (d):</label><input type="number" id="d_simple" placeholder="meters"></div>
+        <button class="solve-button" data-solver="simple-work">Solve</button>
+        <div class="results" id="simple-work-results"></div>
+      </div>
+
+      <div id="complex-work-solver" class="solver-container">
+        <h3>Complex Work Solver</h3>
+        <div class="input-group"><label for="w_complex">Work (W):</label><input type="number" id="w_complex" placeholder="Joules"></div>
+        <div class="input-group"><label for="f_complex">Force (F):</label><input type="number" id="f_complex" placeholder="Newtons"></div>
+        <div class="input-group"><label for="d_complex">Distance (d):</label><input type="number" id="d_complex" placeholder="meters"></div>
+        <div class="input-group"><label for="theta">Angle (θ):</label><input type="number" id="theta" placeholder="degrees"></div>
+        <button class="solve-button" data-solver="complex-work">Solve</button>
+        <div class="results" id="complex-work-results"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Element References ---
+    const formulasBtn = document.getElementById('show-formulas-btn');
+    const solversBtn = document.getElementById('show-solvers-btn');
+    const formulasView = document.getElementById('formulas-view');
+    const solversView = document.getElementById('solvers-view');
+    const solverDropdown = document.getElementById('solver-dropdown');
+    const solverContainers = document.querySelectorAll('.solver-container');
+
+    // --- Main Menu Logic ---
+    formulasBtn.addEventListener('click', () => {
+        formulasView.classList.add('active');
+        solversView.classList.remove('active');
+    });
+
+    solversBtn.addEventListener('click', () => {
+        solversView.classList.add('active');
+        formulasView.classList.remove('active');
+    });
+
+    // --- Solver Dropdown Logic ---
+    solverDropdown.addEventListener('change', (event) => {
+        const selectedSolver = event.target.value;
+        solverContainers.forEach(container => {
+            if (container.id === `${selectedSolver}-solver`) {
+                container.classList.add('active');
+            } else {
+                container.classList.remove('active');
+            }
+        });
+    });
+
+    // --- Initialize default views ---
+    solversView.classList.add('active');
+    document.getElementById('kinematics-solver').classList.add('active');
+
+
+    // --- KINEMATICS SOLVER LOGIC ---
+    document.getElementById('kinematics-solve-button').addEventListener('click', () => {
+        const s_in = document.getElementById('s');
+        const u_in = document.getElementById('u');
+        const v_in = document.getElementById('v');
+        const a_in = document.getElementById('a');
+        const t_in = document.getElementById('t');
+        const resultsDiv = document.getElementById('kinematics-results');
+
+        const s = s_in.value !== '' ? parseFloat(s_in.value) : null;
+        const u = u_in.value !== '' ? parseFloat(u_in.value) : null;
+        const v = v_in.value !== '' ? parseFloat(v_in.value) : null;
+        const a = a_in.value !== '' ? parseFloat(a_in.value) : null;
+        const t = t_in.value !== '' ? parseFloat(t_in.value) : null;
+
+        const values = { s, u, v, a, t };
+        const knowns = Object.values(values).filter(val => val !== null).length;
+
+        if (knowns !== 3) {
+            resultsDiv.innerHTML = "Error: Please provide exactly three values.";
+            return;
+        }
+
+        let result_s = s, result_u = u, result_v = v, result_a = a, result_t = t;
+
+        if (u !== null && v !== null && a !== null) { // solve for s, t
+            result_t = (v - u) / a;
+            result_s = u * result_t + 0.5 * a * result_t * result_t;
+        } else if (u !== null && v !== null && t !== null) { // solve for s, a
+            result_s = ((u + v) / 2) * t;
+            result_a = (v - u) / t;
+        } else if (u !== null && v !== null && s !== null) { // solve for a, t
+            result_a = (v * v - u * u) / (2 * s);
+            result_t = (v - u) / result_a;
+        } else if (u !== null && a !== null && t !== null) { // solve for s, v
+            result_s = u * t + 0.5 * a * t * t;
+            result_v = u + a * t;
+        } else if (u !== null && a !== null && s !== null) { // solve for v, t
+            result_v = Math.sqrt(u * u + 2 * a * s);
+            result_t = (result_v - u) / a;
+        } else if (u !== null && t !== null && s !== null) { // solve for v, a
+            result_v = (2 * s) / t - u;
+            result_a = (result_v - u) / t;
+        } else if (v !== null && a !== null && t !== null) { // solve for u, s
+            result_u = v - a * t;
+            result_s = v * t - 0.5 * a * t * t;
+        } else if (v !== null && a !== null && s !== null) { // solve for u, t
+            result_u = Math.sqrt(v * v - 2 * a * s);
+            result_t = (v - result_u) / a;
+        } else if (v !== null && t !== null && s !== null) { // solve for u, a
+            result_u = (2 * s) / t - v;
+            result_a = (v - result_u) / t;
+        } else if (a !== null && t !== null && s !== null) { // solve for u, v
+            result_u = (s - 0.5 * a * t * t) / t;
+            result_v = result_u + a * t;
+        } else {
+            resultsDiv.innerHTML = "Could not solve with the given inputs.";
+            return;
+        }
+
+        resultsDiv.innerHTML = `
+          <p>Displacement (s): ${result_s.toFixed(4)} m</p>
+          <p>Initial Velocity (u): ${result_u.toFixed(4)} m/s</p>
+          <p>Final Velocity (v): ${result_v.toFixed(4)} m/s</p>
+          <p>Acceleration (a): ${result_a.toFixed(4)} m/s²</p>
+          <p>Time (t): ${result_t.toFixed(4)} s</p>
+        `;
+    });
+
+    // --- GPE Solver ---
+    document.querySelector('[data-solver="gpe"]').addEventListener('click', () => {
+        const gpe_in = document.getElementById('gpe'), m_in = document.getElementById('m_gpe'), g_in = document.getElementById('g'), h_in = document.getElementById('h');
+        const resultsDiv = document.getElementById('gpe-results');
+        const gpe = gpe_in.value !== '' ? parseFloat(gpe_in.value) : null, m = m_in.value !== '' ? parseFloat(m_in.value) : null, g = g_in.value !== '' ? parseFloat(g_in.value) : null, h = h_in.value !== '' ? parseFloat(h_in.value) : null;
+
+        let res_gpe = gpe, res_m = m, res_g = g, res_h = h;
+        if (m !== null && g !== null && h !== null) res_gpe = m * g * h;
+        else if (gpe !== null && g !== null && h !== null) res_m = gpe / (g * h);
+        else if (gpe !== null && m !== null && h !== null) res_g = gpe / (m * h);
+        else if (gpe !== null && m !== null && g !== null) res_h = gpe / (m * g);
+        else { resultsDiv.innerHTML = "Error: Provide 3 values for GPE solver."; return; }
+        resultsDiv.innerHTML = `<p>GPE: ${res_gpe.toFixed(4)} J</p><p>Mass: ${res_m.toFixed(4)} kg</p><p>Gravity: ${res_g.toFixed(4)} m/s²</p><p>Height: ${res_h.toFixed(4)} m</p>`;
+    });
+
+    // --- Force Solver ---
+    document.querySelector('[data-solver="force"]').addEventListener('click', () => {
+        const f_in = document.getElementById('f'), m_in = document.getElementById('m_force'), a_in = document.getElementById('a_force');
+        const resultsDiv = document.getElementById('force-results');
+        const f = f_in.value !== '' ? parseFloat(f_in.value) : null, m = m_in.value !== '' ? parseFloat(m_in.value) : null, a = a_in.value !== '' ? parseFloat(a_in.value) : null;
+
+        let res_f = f, res_m = m, res_a = a;
+        if (m !== null && a !== null) res_f = m * a;
+        else if (f !== null && a !== null) res_m = f / a;
+        else if (f !== null && m !== null) res_a = f / m;
+        else { resultsDiv.innerHTML = "Error: Provide 2 values for Force solver."; return; }
+        resultsDiv.innerHTML = `<p>Force: ${res_f.toFixed(4)} N</p><p>Mass: ${res_m.toFixed(4)} kg</p><p>Acceleration: ${res_a.toFixed(4)} m/s²</p>`;
+    });
+
+    // --- Simple Work Solver ---
+    document.querySelector('[data-solver="simple-work"]').addEventListener('click', () => {
+        const w_in = document.getElementById('w_simple'), f_in = document.getElementById('f_simple'), d_in = document.getElementById('d_simple');
+        const resultsDiv = document.getElementById('simple-work-results');
+        const w = w_in.value !== '' ? parseFloat(w_in.value) : null, f = f_in.value !== '' ? parseFloat(f_in.value) : null, d = d_in.value !== '' ? parseFloat(d_in.value) : null;
+
+        let res_w = w, res_f = f, res_d = d;
+        if (f !== null && d !== null) res_w = f * d;
+        else if (w !== null && d !== null) res_f = w / d;
+        else if (w !== null && f !== null) res_d = w / f;
+        else { resultsDiv.innerHTML = "Error: Provide 2 values for Simple Work solver."; return; }
+        resultsDiv.innerHTML = `<p>Work: ${res_w.toFixed(4)} J</p><p>Force: ${res_f.toFixed(4)} N</p><p>Distance: ${res_d.toFixed(4)} m</p>`;
+    });
+
+    // --- Complex Work Solver ---
+    document.querySelector('[data-solver="complex-work"]').addEventListener('click', () => {
+        const w_in = document.getElementById('w_complex'), f_in = document.getElementById('f_complex'), d_in = document.getElementById('d_complex'), theta_in = document.getElementById('theta');
+        const resultsDiv = document.getElementById('complex-work-results');
+        const w = w_in.value !== '' ? parseFloat(w_in.value) : null, f = f_in.value !== '' ? parseFloat(f_in.value) : null, d = d_in.value !== '' ? parseFloat(d_in.value) : null, theta = theta_in.value !== '' ? parseFloat(theta_in.value) : null;
+        const cos_theta = Math.cos(theta * Math.PI / 180); // convert degrees to radians
+
+        let res_w = w, res_f = f, res_d = d, res_theta = theta;
+        if (f !== null && d !== null && theta !== null) res_w = f * d * cos_theta;
+        else if (w !== null && d !== null && theta !== null) res_f = w / (d * cos_theta);
+        else if (w !== null && f !== null && theta !== null) res_d = w / (f * cos_theta);
+        else if (w !== null && f !== null && d !== null) {
+            const cos_val = w / (f * d);
+            if(cos_val < -1 || cos_val > 1) { resultsDiv.innerHTML = "Error: Impossible calculation (cos(θ) out of range)."; return; }
+            res_theta = Math.acos(cos_val) * 180 / Math.PI; // convert radians to degrees
+        }
+        else { resultsDiv.innerHTML = "Error: Provide 3 values for Complex Work solver."; return; }
+        resultsDiv.innerHTML = `<p>Work: ${res_w.toFixed(4)} J</p><p>Force: ${res_f.toFixed(4)} N</p><p>Distance: ${res_d.toFixed(4)} m</p><p>Angle: ${res_theta.toFixed(4)}°</p>`;
+    });
+});
+</script>
+</body>
